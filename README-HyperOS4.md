@@ -1,5 +1,10 @@
 # FontMM for HyperOS 4（非官方适配）
 
+## v2.1 英数独立替换修复（预发布）
+
+**[下载 v2.1 独立版](https://github.com/zzexnn/FontMM/releases/tag/hos4-v2.1.0-standalone)**。修复独立英文字体目标缺失但误报成功、增加已知英文目标名，并在明确选了 `en.ttf` 时生成不含拉丁字形的中文副本，避免抢占系统英文回退。原字体文件不会改变，源码见 [适配脚本](./hyperos4/module/hyperos-package/hyperos_apply.sh) 和 [HarfBuzz 字体工具](./native/src/subset/fontmm-subset.cc)。本版本仍需 HyperOS 4 实机进一步验证。
+
+
 ## v2 完整独立安装版（推荐）
 
 **[下载 v2 独立安装版](https://github.com/zzexnn/FontMM/releases/tag/hos4-v2.0.0-standalone)**：包含原版 FontMM 的 WebUI、预置字体、Zygisk 组件和 HyperOS 4 补丁，首次安装只刷一个 ZIP，无需先安装原版 FontMM。详情见 [独立版说明](./hyperos4/standalone/README.md)。

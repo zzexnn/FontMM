@@ -1,0 +1,61 @@
+name: Publish FontMM HyperOS4 v2.1 Latin Fix
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'native/src/subset/fontmm-subset.cc'
+      - 'hyperos4/module/hyperos-package/hyperos_apply.sh'
+      - 'hyperos4/v21/**'
+      - 'scripts/build_hyperos4_v21.py'
+      - 'tests/test_hyperos4_v21.py'
+      - 'docs/RELEASE_NOTES_HyperOS4_v21.md'
+      - '.github/workflows/release-hyperos4-v21.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  standalone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Setup Android NDK
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27c
+      - name: Cache HarfBuzz object files
+        uses: actions/cache@v4
+        with:
+          path: |
+            dev/.cache/harfbuzz
+            dev/.cache/harfbuzz-obj
+          key: harfbuzz-${{ runner.os }}-${{ hashFiles('dev/lib/harfbuzz.mjs') }}
+      - name: Compile patched ARM64 fontmm-subset
+        run: node dev/build-subset.mjs
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+      - name: Download and verify upstream preplace ZIP
+        run: |
+          curl --fail --location --retry 4 --output upstream-preplace.zip 'https://github.com/YuleBest/FontMM/releases/download/v26.8.0-beta.10/FontMM_v26.8.0-beta.10_preplace.zip'
+          echo '77df3e14ec12bae0a76c719453f378808927bd525e88131c4819bd8b2bfe1578  upstream-preplace.zip' | sha256sum -c -
+      - name: Assemble standalone v2.1
+        run: python3 scripts/build_hyperos4_v21.py upstream-preplace.zip
+      - name: Regression tests
+        run: python3 tests/test_hyperos4_v21.py
+      - name: Publish prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: hos4-v2.1.0-standalone
+          name: FontMM for HyperOS 4 · v2.1.0 Latin Fix (unofficial beta)
+          body_path: docs/RELEASE_NOTES_HyperOS4_v21.md
+          draft: false
+          prerelease: true
+          files: |
+            dist/FontMM_HyperOS4_Standalone_v2.1.zip
+            dist/FontMM_HyperOS4_Standalone_v2.1.zip.sha256

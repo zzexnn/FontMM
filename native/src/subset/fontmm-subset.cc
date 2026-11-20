@@ -72,6 +72,20 @@ static const Range kMinimalRanges[] = {
     {0xFF00, 0xFFEF},  // 全角形式
 };
 
+// HyperOS 4: 只在显式设置独立英文字体时，将中文字体的西文字形移除。
+// 这样 MiSansVF 的 Latin 字形不会抢占 Roboto / MiSansLatinVF 的英文槽位。
+// 保留其它脚本、CJK、标点、变体字、可变字体 wght 轴。原字体不修改。
+static const Range kStripLatinRanges[] = {
+    {0x0000, 0x024F}, // ASCII, 数字, Latin-1 / Extended A/B
+    {0x1E00, 0x1EFF}, // Latin Extended Additional
+    {0x2C60, 0x2C7F}, // Latin Extended C
+    {0xA720, 0xA7FF}, // Latin Extended D
+    {0xAB30, 0xAB6F}, // Latin Extended E
+    {0xFF10, 0xFF19}, // 全角数字
+    {0xFF21, 0xFF3A}, // 全角大写字母
+    {0xFF41, 0xFF5A}, // 全角小写字母
+};
+
 // CJK 判定范围: 命中即认为该字体自带中文字形, 需要子集化
 static const Range kCjkRanges[] = {
     {0x3400, 0x4DBF},    // CJK 扩展 A
@@ -146,7 +160,8 @@ static void usage(const char *argv0) {
             "  %s -check <font.ttf>                 检测是否含 CJK 字形 (含则退出码 1)\n"
             "  %s -in <font.ttf> -out <out.ttf>     生成英文子集\n"
             "    [-minimal]                         仅保留 ASCII/西欧 (默认含希腊/西里尔)\n"
-            "    [-keep-cjk]                        额外保留 CJK 区块 (默认不保留)\n",
+            "    [-keep-cjk]                        额外保留 CJK 区块 (默认不保留)\n"
+            "    [-strip-latin]                     保留原有其它字形, 移除西文字母和数字, 供 HyperOS 中文槽位使用\n",
             argv0, argv0);
 }
 
@@ -156,6 +171,7 @@ int main(int argc, char **argv) {
     const char *outPath = nullptr;
     bool keepCjk = false;
     bool minimal = false;
+    bool stripLatin = false;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-check") == 0 && i + 1 < argc) {
@@ -168,6 +184,8 @@ int main(int argc, char **argv) {
             keepCjk = true;
         } else if (strcmp(argv[i], "-minimal") == 0) {
             minimal = true;
+        } else if (strcmp(argv[i], "-strip-latin") == 0) {
+            stripLatin = true;
         } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
             usage(argv[0]);
             return 0;
@@ -204,6 +222,10 @@ int main(int argc, char **argv) {
     }
 
     // ---- 子集化模式 ----
+    if (stripLatin && (keepCjk || minimal)) {
+        fprintf(stderr, "[x] -strip-latin 不可与 -keep-cjk/-minimal 一起使用\n");
+        return 2;
+    }
     if (!inPath || !outPath) {
         usage(argv[0]);
         return 2;
@@ -232,7 +254,20 @@ int main(int argc, char **argv) {
     }
 
     hb_set_t *unicodes = hb_subset_input_unicode_set(input);
-    if (minimal) {
+    if (stripLatin) {
+        // 从原字体中保留实际存在的全部字符, 只排除西文字母和数字。
+        // 不使用 CJK-only 白名单: 能保留假名、韩文、Emoji、非拉丁脚本及补充字形。
+        if (countCoverage(face, kCjkRanges) == 0) {
+            fprintf(stderr, "[x] -strip-latin: 原字体不包含 CJK 字形, 无法用于中文槽位\n");
+            hb_subset_input_destroy(input);
+            hb_face_destroy(face);
+            hb_blob_destroy(blob);
+            return 1;
+        }
+        hb_face_collect_unicodes(face, unicodes);
+        for (const auto &r : kStripLatinRanges)
+            hb_set_del_range(unicodes, r.first, r.last);
+    } else if (minimal) {
         addRanges(unicodes, kMinimalRanges, face);
     } else {
         addRanges(unicodes, kLatinRanges, face);
@@ -268,10 +303,13 @@ int main(int argc, char **argv) {
 
     // 校验子集确实不含 CJK 字形 (除非显式要求保留)
     unsigned residual = 0;
-    if (!keepCjk) {
+    if (!keepCjk && !stripLatin) {
         residual = countCoverage(subset, kCjkRanges);
     }
-    printf("in=%zu out=%u residual_cjk=%u\n", data.size(), len, residual);
+    unsigned residualLatin = stripLatin ? countCoverage(subset, kStripLatinRanges) : 0;
+    unsigned retainedCjk = stripLatin ? countCoverage(subset, kCjkRanges) : 0;
+    printf("in=%zu out=%u residual_cjk=%u residual_latin=%u retained_cjk=%u\n",
+           data.size(), len, residual, residualLatin, retainedCjk);
 
     hb_blob_destroy(outBlob);
     hb_face_destroy(subset);
@@ -282,6 +320,10 @@ int main(int argc, char **argv) {
     // 子集后仍残留 CJK 说明裁剪未达预期, 应视为失败以免用户以为已生效
     if (residual > 0) {
         fprintf(stderr, "[!] 子集后仍含 %u 个 CJK 码点\n", residual);
+        return 1;
+    }
+    if (stripLatin && (residualLatin > 0 || retainedCjk == 0)) {
+        fprintf(stderr, "[x] -strip-latin 校验失败: 拉丁残留=%u CJK剩余=%u\n", residualLatin, retainedCjk);
         return 1;
     }
     return 0;
