@@ -1,3 +1,9 @@
+> **FontMM for HyperOS 4（非官方适配）** · [查看 HyperOS 4 安装与说明](./README-HyperOS4.md) · [安装包发布页](https://github.com/zzexnn/FontMM/releases) · [变更记录](./CHANGELOG-HyperOS4.md)
+>
+> 本仓库 Fork 自 [YuleBest/FontMM](https://github.com/YuleBest/FontMM)。原作者 Yule；原项目和衍生适配依 GPL-3.0 开源。HyperOS 4 部分使用覆盖升级包，**必须先安装原版 FontMM v26.8.0-beta.10**。已在单台 HyperOS 4 设备上验证能启动、更换设置字体和显示多档字体预览；其他机型与所有应用的覆盖未全面验证。
+
+---
+
 <h1 align="center">FontMM</h1>
 
 <div align="center">

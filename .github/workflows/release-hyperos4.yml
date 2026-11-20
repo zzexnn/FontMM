@@ -1,0 +1,34 @@
+name: Publish FontMM HyperOS 4
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hyperos4/**'
+      - 'scripts/build_hyperos4.py'
+      - 'tests/test_hyperos4_packaging.py'
+      - 'docs/RELEASE_NOTES_HyperOS4.md'
+      - '.github/workflows/release-hyperos4.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build upgrade module from open source
+        run: python3 scripts/build_hyperos4.py
+      - name: Check archive and scripts
+        run: python3 tests/test_hyperos4_packaging.py
+      - name: Publish non-official HyperOS 4 release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: hos4-v1.0.0
+          name: FontMM for HyperOS 4 · v1 (unofficial)
+          body_path: docs/RELEASE_NOTES_HyperOS4.md
+          draft: false
+          prerelease: true
+          files: dist/FontMM_HyperOS4_Update_v1.zip

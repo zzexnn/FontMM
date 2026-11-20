@@ -1,0 +1,6 @@
+id=FontMM
+name=FontMM for HyperOS 4
+version=26.8.0-beta.10-hos4.1
+versionCode=26080011
+author=YuleBest (original FontMM); HyperOS compatibility patch
+description=HyperOS 4 / Android 17 dynamic font overlay, keeps original FontMM WebUI and variable-font slots

@@ -1,0 +1,8 @@
+#!/sbin/sh
+umask 022
+OUTFD=$2
+ZIPFILE=$3
+[ -f /data/adb/magisk/util_functions.sh ] || exit 1
+. /data/adb/magisk/util_functions.sh
+[ "$MAGISK_VER_CODE" -ge 20400 ] || abort 'Magisk 20.4+ required'
+install_module
