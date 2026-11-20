@@ -1,0 +1,40 @@
+name: Publish FontMM HyperOS 4 Standalone
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hyperos4/standalone/**'
+      - 'scripts/build_hyperos4_standalone.py'
+      - 'tests/test_hyperos4_standalone.py'
+      - 'docs/RELEASE_NOTES_HyperOS4_Standalone.md'
+      - '.github/workflows/release-hyperos4-standalone.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  standalone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download and verify pinned official FontMM
+        run: |
+          curl --fail --location --retry 3 --output upstream-preplace.zip 'https://github.com/YuleBest/FontMM/releases/download/v26.8.0-beta.10/FontMM_v26.8.0-beta.10_preplace.zip'
+          echo '77df3e14ec12bae0a76c719453f378808927bd525e88131c4819bd8b2bfe1578  upstream-preplace.zip' | sha256sum -c -
+      - name: Build standalone ZIP
+        run: python3 scripts/build_hyperos4_standalone.py upstream-preplace.zip
+      - name: Test standalone ZIP
+        run: python3 tests/test_hyperos4_standalone.py
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: hos4-v2.0.0-standalone
+          name: FontMM for HyperOS 4 · v2 Standalone (unofficial)
+          body_path: docs/RELEASE_NOTES_HyperOS4_Standalone.md
+          draft: false
+          prerelease: true
+          files: |
+            dist/FontMM_HyperOS4_Standalone_v2.zip
+            dist/FontMM_HyperOS4_Standalone_v2.zip.sha256

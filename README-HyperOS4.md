@@ -1,5 +1,11 @@
 # FontMM for HyperOS 4（非官方适配）
 
+## v2 完整独立安装版（推荐）
+
+**[下载 v2 独立安装版](https://github.com/zzexnn/FontMM/releases/tag/hos4-v2.0.0-standalone)**：包含原版 FontMM 的 WebUI、预置字体、Zygisk 组件和 HyperOS 4 补丁，首次安装只刷一个 ZIP，无需先安装原版 FontMM。详情见 [独立版说明](./hyperos4/standalone/README.md)。
+
+## v1 历史覆盖升级版
+
 > 基于 [YuleBest/FontMM](https://github.com/YuleBest/FontMM) 的 **GPL-3.0** 衍生适配。原作者为 **Yule**，HyperOS 4 兼容补丁由 zzexnn 发布，与原作者无官方关联。
 
 本分支面向 **HyperOS 4 / Android 17 (API 37)**。这是在现有 FontMM 上应用的**覆盖升级包**，不是一个能独立安装的完整模块。必须先安装 [上游 FontMM v26.8.0-beta.10](https://github.com/YuleBest/FontMM/releases) 并在原版 WebUI 应用过简体中文字体。

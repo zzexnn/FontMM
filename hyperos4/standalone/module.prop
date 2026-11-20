@@ -1,0 +1,6 @@
+id=FontMM
+name=FontMM for HyperOS 4 (Standalone)
+version=26.8.0-beta.10-hos4.2
+versionCode=26080012
+author=Yule (upstream FontMM); zzexnn (HyperOS 4 adaptation)
+description=Standalone HyperOS 4 Android 17 font manager based on FontMM GPL-3.0
