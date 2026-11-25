@@ -1,0 +1,36 @@
+name: HyperOS 4 问题反馈
+description: 提交 FontMM 的系统字体问题和诊断日志
+body:
+  - type: markdown
+    attributes:
+      value: |
+        WebUI 首页有“导出诊断日志”，报告保存在 Download/FontMM。
+        公开提交前请先检查文件内容并移除个人敏感信息。
+  - type: input
+    id: model
+    attributes:
+      label: 手机型号
+      placeholder: Xiaomi 15 Ultra
+    validations:
+      required: true
+  - type: input
+    id: rom
+    attributes:
+      label: HyperOS 与 Android 版本
+      placeholder: HyperOS 4 / Android 17
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题现象及复现步骤
+      description: 哪些系统界面或应用未生效？中文、英数、字重还是锁屏？
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic
+    attributes:
+      label: 诊断日志（请先检查内容）
+      description: 可把 TXT 拖入输入框，或粘贴相关段落。
+    validations:
+      required: false

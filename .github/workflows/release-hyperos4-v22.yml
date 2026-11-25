@@ -1,0 +1,74 @@
+name: Publish FontMM HyperOS4 v2.2 Diagnostics
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'hyperos4/v22/**'
+      - 'hyperos4/standalone/customize.sh'
+      - 'hyperos4/module/hyperos-package/apply.sh'
+      - 'scripts/build_hyperos4_v22.py'
+      - 'tests/test_hyperos4_v22.py'
+      - 'docs/RELEASE_NOTES_HyperOS4_v22.md'
+      - '.github/workflows/release-hyperos4-v22.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  standalone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            web/pnpm-lock.yaml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Setup Android NDK
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27c
+      - name: Cache HarfBuzz
+        uses: actions/cache@v4
+        with:
+          path: |
+            dev/.cache/harfbuzz
+            dev/.cache/harfbuzz-obj
+          key: harfbuzz-11-5-r27c
+      - name: Build WebUI with diagnosis controls
+        run: |
+          pnpm -C web install --frozen-lockfile
+          pnpm -C web type-check
+          pnpm -C web build
+      - name: Compile ARM64 font subsetting utility
+        run: node dev/build-subset.mjs
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+      - name: Download verified upstream module
+        run: |
+          curl --fail --location --retry 4 --output upstream-preplace.zip 'https://github.com/YuleBest/FontMM/releases/download/v26.8.0-beta.10/FontMM_v26.8.0-beta.10_preplace.zip'
+          echo '77df3e14ec12bae0a76c719453f378808927bd525e88131c4819bd8b2bfe1578  upstream-preplace.zip' | sha256sum -c -
+      - name: Assemble v2.2 standalone
+        run: python3 scripts/build_hyperos4_v22.py upstream-preplace.zip
+      - name: Verify diagnostics and package
+        run: python3 tests/test_hyperos4_v22.py
+      - name: Publish prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: hos4-v2.2.0-standalone
+          name: FontMM for HyperOS 4 · v2.2.0 Diagnostics (unofficial beta)
+          body_path: docs/RELEASE_NOTES_HyperOS4_v22.md
+          draft: false
+          prerelease: true
+          files: |
+            dist/FontMM_HyperOS4_Standalone_v2.2.zip
+            dist/FontMM_HyperOS4_Standalone_v2.2.zip.sha256
