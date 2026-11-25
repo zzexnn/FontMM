@@ -1,0 +1,6 @@
+id=FontMM
+name=FontMM for HyperOS 4 (Standalone)
+version=26.8.0-beta.10-hos4.2.2
+versionCode=26080014
+author=Yule (upstream FontMM); zzexnn (HyperOS adaptation)
+description=HyperOS 4 standalone FontMM with local diagnostic export (GPL-3.0)

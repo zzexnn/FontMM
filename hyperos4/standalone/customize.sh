@@ -31,6 +31,13 @@ for rel in system/etc/fonts.xml system/etc/fonts_base.xml system/etc/fonts_ule.x
   rm -f "$MODPATH/$rel" || die "Could not remove ColorOS XML override $rel"
 done
 chmod 0755 "$MODPATH/apply.sh" "$MODPATH/hyperos/"*.sh 2>/dev/null
+mkdir -p "$MODPATH/hyperos" || die "Cannot create diagnostic directory."
+{
+  echo "FontMM standalone install"
+  echo "sdk=$SDK"
+  echo "os=$OS"
+  echo "build=$INC"
+} > "$MODPATH/hyperos/install-status.txt" 2>/dev/null || true
 say "[HOS4] Staging fonts for $OS $INC"
 sh "$MODPATH/apply.sh" "$MODPATH" || die "Font overlay generation failed."
 say "[HOS4] Standalone installation complete; reboot to apply."
