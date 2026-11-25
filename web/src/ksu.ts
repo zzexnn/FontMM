@@ -47,6 +47,10 @@ async function mockExec(command: string): Promise<ExecResult> {
   const slowFail = (stderr: string) =>
     new Promise<ExecResult>((r) => setTimeout(() => r(fail(stderr)), 200));
 
+  if (command.includes('/hyperos/diagnostics.sh')) {
+    return slow('DIAG_FILE=/storage/emulated/0/Download/FontMM/FontMM-diagnostics-example.txt\n');
+  }
+
   // find 命令: 解析路径与类型 (d/f), 返回假目录/文件, 以 NUL 分隔 (与 -print0 一致)
   if (command.startsWith('find ')) {
     const m = command.match(

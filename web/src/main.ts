@@ -6,6 +6,7 @@ import './apply';
 import './testFonts';
 import './home';
 import './navigation';
+import './diagnostics';
 
 import { enableEdgeToEdge } from './ksu';
 import { FontEditorToolDef, MiFontToolDef, ToolHost } from './tools';

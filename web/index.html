@@ -100,6 +100,21 @@
           </div>
         </md-elevated-card>
 
+
+        <!-- FontMM 本地诊断日志导出（不会自动上传） -->
+        <md-elevated-card class="home-card home-info-card">
+          <div class="home-info-title">故障反馈 · 诊断日志</div>
+          <div class="home-preload-note" style="display:block;margin-bottom:12px">
+            字体不生效、英文数字异常？可以导出报告供开发者排查。默认不读取系统日志、不包含字体文件，也不会自动上传。
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <md-filled-button id="diagnostics-basic"><md-icon slot="icon">download</md-icon>导出诊断日志</md-filled-button>
+            <md-outlined-button id="diagnostics-extended"><md-icon slot="icon">bug_report</md-icon>附加系统字体日志</md-outlined-button>
+          </div>
+          <div id="diagnostics-result" class="home-preload-note" role="status" style="display:block;margin-top:12px">
+            文件将保存在「下载 / FontMM」，检查内容后通过酷安或 GitHub Issues 分享。
+          </div>
+        </md-elevated-card>
         <!-- 字体预热器: 让被「卸载模块」的应用仍能正常渲染字体 -->
         <md-elevated-card class="home-card home-info-card">
           <div class="home-info-title">字体预热器</div>
@@ -373,6 +388,18 @@
       </div>
     </md-dialog>
 
+
+    <md-dialog id="diagnostics-confirm">
+      <div slot="headline">附加系统字体日志？</div>
+      <div slot="content">
+        将额外收集最近字体相关的系统 logcat，可能含应用名称、路径或个人信息。
+        只保存在本机，不会自动上传。请检查并删除敏感内容后再发送。
+      </div>
+      <div slot="actions">
+        <md-text-button id="diagnostics-cancel">取消</md-text-button>
+        <md-filled-button id="diagnostics-accept">确认导出</md-filled-button>
+      </div>
+    </md-dialog>
     <!-- 日志弹窗 -->
     <md-dialog id="log-dialog">
       <div slot="headline">应用日志</div>
